@@ -47,23 +47,20 @@ public class Runner {
             System.out.println("Результаты выполнения:");
 
             session.beginTransaction();
-
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<User> criteria = builder.createQuery(User.class);
-            criteria.from(User.class);
-            List<User> usersList = session.createQuery(criteria).getResultList();
-
-            for (User currentUser : usersList
+            List<Integer> userIdList = session.createSQLQuery("select id from \"User\"").getResultList();
+            session.getTransaction().commit();
+            for (Integer currentUserId : userIdList
             ) {
-                List<Post> nestedPosts = currentUser.getNestedPosts();
-                List<Comment> nestedComments = currentUser.getNestedComments();
+                UserDao userDao = new UserDao();
+                String userName = userDao.getUserName(session, currentUserId);
+                List<Post> nestedPosts = userDao.getNestedPosts(session, currentUserId);
+                List<Comment> nestedComments = userDao.getNestedComments(session, currentUserId);
                 System.out.println("");
-                System.out.println(String.format("Посты пользователя %s:", currentUser.getName()));
+                System.out.println(String.format("Посты пользователя %s:", userName));
                 System.out.println(nestedPosts.toString());
-                System.out.println(String.format("Камметы пользователя %s:", currentUser.getName()));
+                System.out.println(String.format("Камметы пользователя %s:", userName));
                 System.out.println(nestedComments.toString());
             }
-            session.getTransaction().commit();
         }
     }
 }
